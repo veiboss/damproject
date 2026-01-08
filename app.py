@@ -13,7 +13,7 @@ CORS(app)
 
 # ==========================================
 # [설정] API 키 (공백 제거 안전장치 포함)
-MY_API_KEY = "AIzaSyCq2oW6JFTIgKhY9bdsP1Q5PvXDvEuOlLQ".strip()
+MY_API_KEY = "  ".strip()
 # ==========================================
 
 genai.configure(api_key=MY_API_KEY)
