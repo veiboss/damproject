@@ -60,8 +60,9 @@ export default function MainForm({ onSubmit }) {
     setIsSubmitting(true);
     try {
       await onSubmit(payload);
-      alert("저장 완료 (현재는 더미 동작)");
+      // 여기서 alert/console.log는 빼라는 요구였으니 호출만
     } catch (e) {
+      // 필요하면 상위에서 처리하거나, 여기서만 최소 처리
       alert("저장 실패");
     } finally {
       setIsSubmitting(false);
@@ -99,58 +100,61 @@ export default function MainForm({ onSubmit }) {
         </div>
       </div>
 
-      {/* 과목 리스트 */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 overflow-hidden">
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-    <div className="text-sm opacity-80">{year}학년 과목 목록</div>
-    <div className="text-xs opacity-60">
-      스크롤 중에도 하단 제출 버튼이 고정됩니다
-    </div>
-  </div>
-
-  {/* 스크롤 영역 */}
-  <div className="max-h-[calc(100vh-420px)] sm:max-h-[calc(100vh-380px)] overflow-y-auto pr-0 md:pr-2 space-y-6 pb-24">
-    <SemesterSection
-      title="1학기"
-      courses={sem1}
-      gradeOptions={gradeOptions}
-      gradesByCourseNo={gradesByCourseNo}
-      onChangeGrade={handleChangeGrade}
-    />
-
-    <SemesterSection
-      title="2학기"
-      courses={sem2}
-      gradeOptions={gradeOptions}
-      gradesByCourseNo={gradesByCourseNo}
-      onChangeGrade={handleChangeGrade}
-    />
-
-    {/* 하단 고정 제출 바 */}
-    <div className="sticky bottom-0 -mx-4 mt-6 px-4 pt-3 pb-4 bg-slate-950/60 backdrop-blur border-t border-white/10">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-16 sm:pr-24">
-        <div className="text-xs opacity-75">
-          학번 {studentId ? studentId : "미입력"} , {year}학년 과목 {visibleCourses.length}개
+      {/* 과목 리스트 카드 */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 overflow-hidden flex flex-col">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <div className="text-sm opacity-80">{year}학년 과목 목록</div>
+          <div className="text-xs opacity-60">
+            스크롤 중에도 하단 제출 버튼이 고정됩니다
+          </div>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit || isSubmitting}
-          className={[
-            "w-full sm:w-auto px-6 py-3 rounded-xl border transition",
-            !canSubmit || isSubmitting
-              ? "bg-white/10 text-white/50 border-white/10 cursor-not-allowed"
-              : "bg-yellow-300 text-slate-900 border-yellow-300 hover:bg-yellow-200",
-          ].join(" ")}
-        >
-          {isSubmitting ? "저장 중" : "제출"}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+        {/* 스크롤 영역 (제출바는 밖으로 뺌) */}
+        <div className="max-h-[calc(100vh-420px)] sm:max-h-[calc(100vh-380px)] overflow-y-auto overflow-x-hidden pr-0 md:pr-2 space-y-6">
+          <SemesterSection
+            title="1학기"
+            courses={sem1}
+            gradeOptions={gradeOptions}
+            gradesByCourseNo={gradesByCourseNo}
+            onChangeGrade={handleChangeGrade}
+          />
 
-    </div>
+          <SemesterSection
+            title="2학기"
+            courses={sem2}
+            gradeOptions={gradeOptions}
+            gradesByCourseNo={gradesByCourseNo}
+            onChangeGrade={handleChangeGrade}
+          />
+        </div>
+
+        {/* 제출 바: 정보 영역과 버튼을 분리 */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            {/* 왼쪽 정보 바 */}
+            <div className="flex-1 bg-slate-950/60 backdrop-blur border border-white/10 rounded-xl px-4 py-3">
+              <div className="text-xs opacity-80">
+                학번 {studentId ? studentId : "미입력"} , {year}학년 과목 {visibleCourses.length}개
+              </div>
+            </div>
+
+            {/* 오른쪽 제출 버튼(독립) */}
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting}
+              className={[
+                "w-full sm:w-auto px-7 py-3 rounded-xl border font-semibold transition",
+                "shadow-lg",
+                !canSubmit || isSubmitting
+                  ? "!bg-white/10 !text-white/50 !border-white/10 cursor-not-allowed"
+                  : "!bg-yellow-300 !text-slate-900 !border-yellow-300 hover:!bg-yellow-200",
+              ].join(" ")}
+            >
+              {isSubmitting ? "저장 중" : "제출"}
+            </button>
+          </div>
+
+        </div>
+      </div>
   );
 }
 
@@ -189,13 +193,17 @@ function SemesterSection({
             </div>
           </div>
 
-          {/* 성적 버튼 */}
+          {/* 성적 버튼: 여기만 가로 스크롤되게 가둠 (전체 카드에 가로 스크롤바 안 생기게) */}
           <div className="md:col-span-8 lg:col-span-9">
-            <GradeRow
-              options={gradeOptions}
-              value={gradesByCourseNo[c.no] ?? "미수강"}
-              onChange={(v) => onChangeGrade(c.no, v)}
-            />
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-max">
+                <GradeRow
+                  options={gradeOptions}
+                  value={gradesByCourseNo[c.no] ?? "미수강"}
+                  onChange={(v) => onChangeGrade(c.no, v)}
+                />
+              </div>
+            </div>
           </div>
         </div>
       ))}
